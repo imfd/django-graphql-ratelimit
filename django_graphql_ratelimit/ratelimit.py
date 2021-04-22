@@ -14,8 +14,9 @@ def GQLRatelimitKey(group, request):
 def ratelimit(group=None, key=None, rate=None, method=ALL, block=False):
     def decorator(fn):
         @wraps(fn)
-        def _wrapped(root, info, **kw):
-            request = info.context
+        def _wrapped(*args, **kw):
+            # args[2] is the "info" arg
+            request = args[2].context.request
 
             old_limited = getattr(request, "limited", False)
 
@@ -48,7 +49,7 @@ def ratelimit(group=None, key=None, rate=None, method=ALL, block=False):
                 #    % (request.path, request.META["REMOTE_ADDR"])
                 # )
                 raise Ratelimited("rate_limited")
-            return fn(root, info, **kw)
+            return fn(*args, **kw)
 
         return _wrapped
 
